@@ -1,3 +1,6 @@
 .idea/
 convert/
 download/
+.streamlit/secrets.toml
+.streamlit/
+.cache
