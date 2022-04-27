@@ -70,7 +70,7 @@ def parse_track(api_response: dict) -> list:
     return [dict(title=title, artist=artist, album=album)]
 
 
-@st.cache(allow_output_mutation=True)
+# @st.cache(allow_output_mutation=True)
 def get_authenticator():
     auth_manager = SpotifyClientCredentials(
         client_id=st.secrets["spotify_api"]["client_id"],
@@ -89,7 +89,6 @@ def container_api_download(spotify_url: str) -> None:
     spotify_client = spotipy.client.Spotify(auth_manager=get_authenticator())
     url_parts = spotify_url.split("/")
 
-    tracks = []
     if url_parts[3] == "playlist":
         response = spotify_client.playlist_items(spotify_url,
                                                  fields="items(track(artists(name), name, album(name)))")
@@ -100,6 +99,8 @@ def container_api_download(spotify_url: str) -> None:
     elif url_parts[3] == "track":
         response = spotify_client.track(spotify_url)
         tracks = parse_track(response)
+    else:
+        tracks = []
 
     track_selection = st.multiselect(
         label="Track Selection",
