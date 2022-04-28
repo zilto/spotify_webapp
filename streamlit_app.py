@@ -132,7 +132,7 @@ def app() -> None:
 
     spotify_url = st.text_input(
         "Spotify URL",
-        value="https://open.spotify.com/playlist/37i9dQZF1DWTZeTXqKTge4",
+        value="https://open.spotify.com/album/4tBF36exZUWUcDwluyHKcV",
         help="Paste Spotify URL to playlist, album, or track"
     )
 
