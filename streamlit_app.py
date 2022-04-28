@@ -30,6 +30,7 @@ def add_metadata_to_mp4(input_filepath: str, track: dict[str, str]) -> None:
         ffmpeg.input(input_filepath)\
               .output("".join(input_filepath.split("temp_")), **metadata)\
               .run(capture_stdout=True, capture_stderr=True, overwrite_output=True)
+
     except ffmpeg.Error as e:
         print('stdout:', e.stdout.decode('utf8'))
         print('stderr:', e.stderr.decode('utf8'))
@@ -116,13 +117,24 @@ def container_api_download(spotify_url: str) -> None:
         for idx, track in enumerate(track_selection):
             download_track(track)
             download_progress.progress((idx + 1) / len(track_selection))
-            logs_expander.write(f"{idx} - Success - {track['artist']} - {track['title']}")
+            logs_expander.write(f"{idx+1} - Success - {track['artist']} - {track['title']}")
 
 
 def app() -> None:
-    st.title("Spotify Webapp")
+    st.set_page_config(
+        page_title="Spotify Downloader",
+        page_icon="https://e7.pngegg.com/pngimages/738/294/png-clipart-spotify-logo-podcast-music-matty-carter-ariel-pink-spotify-icon-logo-preview.png",
+        layout="centered",
+        menu_items={"Get help": None, "Report a Bug": None}
+    )
 
-    spotify_url = st.text_input("Spotify URL", value="https://open.spotify.com/playlist/2751fned2hgV9pNf0CVqKE")
+    st.title("Spotify Downloader")
+
+    spotify_url = st.text_input(
+        "Spotify URL",
+        value="https://open.spotify.com/playlist/37i9dQZF1DWTZeTXqKTge4",
+        help="Paste Spotify URL to playlist, album, or track"
+    )
 
     col1, col2 = st.columns(2)
     with col1:
