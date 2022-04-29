@@ -131,7 +131,7 @@ def container_api_download(spotify_url: str) -> None:
                     myzip.write(child)
 
         # TODO create zip on click and delete files from web memory
-        st.download_button("Download zip", "spotify_download.zip")
+        st.download_button("Download zip", "spotify_download.zip", mime="application/octet-stream")
 
 
 def app() -> None:
