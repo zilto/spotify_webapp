@@ -25,14 +25,14 @@ def download_from_youtube(artist: str, title: str) -> str:
 
 
 def new_dl_youtube(track: dict) -> None:
-    try:
-        search = pytube.Search(f"{track['artist']} {track['title']}")
-        first_video = search.results[0]
-        audio_stream = first_video.streams.get_audio_only(subtype="mp4")
-        audio_buffer = BytesIO()
-        audio_stream.stream_to_buffer(audio_buffer)
-    except HTTPError as e:
-        print(e.code)
+    # try:
+    search = pytube.Search(f"{track['artist']} {track['title']}")
+    first_video = search.results[0]
+    audio_stream = first_video.streams.get_audio_only(subtype="mp4")
+    audio_buffer = BytesIO()
+    audio_stream.stream_to_buffer(audio_buffer)
+    # except HTTPError as e:
+    #     print(e.code)
 
     metadata = {
         "metadata:g:0": f'title={track["title"]}',
@@ -43,7 +43,8 @@ def new_dl_youtube(track: dict) -> None:
     try:
         process = ffmpeg.input("pipe:", f="mp4")\
                         .output(f"{track['artist']} - {track['title']}.mp4", f="mp4", **metadata) \
-                        .run_async(pipe_stdin=True, pipe_stdout=True, overwrite_output=True)
+                        .run(capture_stdin=True, capture_stdout=True, overwrite_output=True)
+        #.run_async(pipe_stdin=True, pipe_stdout=True, overwrite_output=True)
         process.communicate(input=audio_buffer.getvalue())
 
     except ffmpeg.Error as e:
