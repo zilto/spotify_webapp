@@ -43,7 +43,7 @@ def new_dl_youtube(track: dict) -> None:
     try:
         process = ffmpeg.input("pipe:", f="mp4")\
                         .output(f"{track['artist']} - {track['title']}.mp4", f="mp4", **metadata) \
-                        .run(capture_stdin=True, capture_stdout=True, overwrite_output=True)
+                        .run(capture_stdout=True, overwrite_output=True)
         #.run_async(pipe_stdin=True, pipe_stdout=True, overwrite_output=True)
         process.communicate(input=audio_buffer.getvalue())
 
