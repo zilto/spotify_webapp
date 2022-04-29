@@ -1,5 +1,6 @@
 from io import BytesIO
-from subprocess import Popen, PIPE
+import tempfile
+from urllib.error import HTTPError
 
 import streamlit as st
 import streamlit.components.v1 as components
@@ -24,40 +25,26 @@ def download_from_youtube(artist: str, title: str) -> str:
 
 
 def new_dl_youtube(track: dict) -> None:
-    search = pytube.Search(f"{track['artist']} {track['title']}")
-    first_video = search.results[0]
-    audio_stream = first_video.streams.get_audio_only(subtype="mp4")
-    audio_buffer = BytesIO()
-    audio_stream.stream_to_buffer(audio_buffer)
+    try:
+        search = pytube.Search(f"{track['artist']} {track['title']}")
+        first_video = search.results[0]
+        audio_stream = first_video.streams.get_audio_only(subtype="mp4")
+        audio_buffer = BytesIO()
+        audio_stream.stream_to_buffer(audio_buffer)
+    except HTTPError as e:
+        print(e.code)
 
     metadata = {
         "metadata:g:0": f'title={track["title"]}',
         "metadata:g:1": f'artist={track["artist"]}',
         "metadata:g:2": f'album={track["album"]}',
     }
-
+    #                .output(f"./download/{track['artist']} - {track['title']}.mp4", f="mp4", **metadata)\
     try:
         process = ffmpeg.input("pipe:", f="mp4")\
-                        .output(f"./download/{track['artist']} - {track['title']}.mp4", f="mp4", **metadata)\
+                        .output(f"{track['artist']} - {track['title']}.mp4", f="mp4", **metadata) \
                         .run_async(pipe_stdin=True, pipe_stdout=True, overwrite_output=True)
         process.communicate(input=audio_buffer.getvalue())
-
-    except ffmpeg.Error as e:
-        print('stdout:', e.stdout.decode('utf8'))
-        print('stderr:', e.stderr.decode('utf8'))
-        raise e
-
-
-def add_metadata_to_mp4(input_filepath: str, track: dict[str, str]) -> None:
-    metadata = {
-        "metadata:g:0": f'title={track["title"]}',
-        "metadata:g:1": f'artist={track["artist"]}',
-        "metadata:g:2": f'album={track["album"]}',
-    }
-    try:
-        ffmpeg.input(input_filepath)\
-              .output("".join(input_filepath.split("temp_")), **metadata)\
-              .run(capture_stdout=True, capture_stderr=True, overwrite_output=True)
 
     except ffmpeg.Error as e:
         print('stdout:', e.stdout.decode('utf8'))
