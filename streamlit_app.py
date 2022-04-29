@@ -1,3 +1,5 @@
+from io import BytesIO
+
 import streamlit as st
 import streamlit.components.v1 as components
 import spotipy
@@ -20,6 +22,29 @@ def download_from_youtube(artist: str, title: str) -> str:
     return filepath
 
 
+def new_dl_youtube(track: dict) -> None:
+    search = pytube.Search(f"{track['artist']} {track['title']}")
+    first_video = search.results[0]
+    audio_stream = first_video.streams.get_audio_only(subtype="mp4")
+    audio_buffer = BytesIO()
+    audio_stream.stream_to_buffer(audio_buffer)
+
+    metadata = {
+        "metadata:g:0": f'title={track["title"]}',
+        "metadata:g:1": f'artist={track["artist"]}',
+        "metadata:g:2": f'album={track["album"]}',
+    }
+    try:
+        ffmpeg.input(audio_buffer.getvalue(), f="mp4") \
+              .output(f"{track['artist']}_{track['title']}.mp4", **metadata) \
+              .run(capture_stdout=True, capture_stderr=True, overwrite_output=True)
+
+    except ffmpeg.Error as e:
+        print('stdout:', e.stdout.decode('utf8'))
+        print('stderr:', e.stderr.decode('utf8'))
+        raise e
+
+
 def add_metadata_to_mp4(input_filepath: str, track: dict[str, str]) -> None:
     metadata = {
         "metadata:g:0": f'title={track["title"]}',
@@ -38,8 +63,9 @@ def add_metadata_to_mp4(input_filepath: str, track: dict[str, str]) -> None:
 
 
 def download_track(track: dict[str, str]) -> None:
-    filepath = download_from_youtube(track["artist"], track["title"])
-    add_metadata_to_mp4(filepath, track)
+    new_dl_youtube(track)
+    #filepath = download_from_youtube(track["artist"], track["title"])
+    #add_metadata_to_mp4(filepath, track)
 
 
 def parse_playlist_items(api_response: dict) -> list[dict]:
