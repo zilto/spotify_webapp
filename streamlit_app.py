@@ -1,5 +1,6 @@
 from io import BytesIO
-import tempfile
+import pathlib
+import zipfile
 from urllib.error import HTTPError
 
 import streamlit as st
@@ -28,7 +29,7 @@ def download_track(track: dict) -> None:
     #                .output(f"./download/{track['artist']} - {track['title']}.mp4", f="mp4", **metadata)\
     try:
         process = ffmpeg.input("pipe:", f="mp4")\
-                        .output(f"{track['artist']} - {track['title']}.mp4", f="mp4", **metadata) \
+                        .output(f"./download/{track['artist']} - {track['title']}.mp4", f="mp4", **metadata) \
                         .run_async(pipe_stdin=True, pipe_stdout=True, overwrite_output=True)
         process.communicate(input=audio_buffer.getvalue())
     except ffmpeg.Error as e:
@@ -82,6 +83,8 @@ def container_spotify_iframe(spotify_url: str) -> None:
 
 
 def container_api_download(spotify_url: str) -> None:
+    print("current dir", pathlib.Path.cwd())
+
     spotify_client = spotipy.client.Spotify(auth_manager=get_authenticator())
     url_parts = spotify_url.split("/")
 
@@ -106,6 +109,8 @@ def container_api_download(spotify_url: str) -> None:
         help="Select tracks to be downloaded"
     )
 
+    download_path = pathlib.Path("./download/")
+    download_path.mkdir()
     if st.button("Download Tracks"):
         download_progress = st.progress(0)
         logs_expander = st.expander("Logs")
@@ -113,6 +118,15 @@ def container_api_download(spotify_url: str) -> None:
             download_track(track)
             download_progress.progress((idx + 1) / len(track_selection))
             logs_expander.write(f"{idx+1} - Success - {track['artist']} - {track['title']}")
+
+        with zipfile.ZipFile("spotify_download.zip", "w") as myzip:
+            for child in download_path.iterdir():
+                print("child", child)
+                if child.is_file():
+                    myzip.write(child)
+
+        # TODO create zip on click and delete files from web memory
+        st.download_button("Download zip", "spotify_download.zip")
 
 
 def app() -> None:
