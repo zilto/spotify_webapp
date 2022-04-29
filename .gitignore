@@ -4,3 +4,4 @@ download/
 .streamlit/secrets.toml
 .streamlit/
 .cache
+*.zip
