@@ -10,21 +10,7 @@ import pytube
 import ffmpeg
 
 
-def download_from_youtube(artist: str, title: str) -> str:
-    """Searches for `artist track` on Youtube, then downloads audio stream from the first video result"""
-    search = pytube.Search(f"{artist} {title}")
-    first_video = search.results[0]
-    audio_stream = first_video.streams.get_audio_only(subtype="mp4")  # automatically selects highest bitrate
-    filepath = audio_stream.download(
-        filename_prefix="temp_",
-        output_path="./download/",
-        filename=f"{artist}_{title}.mp4",
-        skip_existing=True,
-    )
-    return filepath
-
-
-def new_dl_youtube(track: dict) -> None:
+def download_track(track: dict) -> None:
     # try:
     search = pytube.Search(f"{track['artist']} {track['title']}")
     first_video = search.results[0]
@@ -43,20 +29,12 @@ def new_dl_youtube(track: dict) -> None:
     try:
         process = ffmpeg.input("pipe:", f="mp4")\
                         .output(f"{track['artist']} - {track['title']}.mp4", f="mp4", **metadata) \
-                        .run(capture_stdout=True, overwrite_output=True)
-        #.run_async(pipe_stdin=True, pipe_stdout=True, overwrite_output=True)
+                        .run_async(pipe_stdin=True, pipe_stdout=True, overwrite_output=True)
         process.communicate(input=audio_buffer.getvalue())
-
     except ffmpeg.Error as e:
         print('stdout:', e.stdout.decode('utf8'))
         print('stderr:', e.stderr.decode('utf8'))
         raise e
-
-
-def download_track(track: dict[str, str]) -> None:
-    new_dl_youtube(track)
-    #filepath = download_from_youtube(track["artist"], track["title"])
-    #add_metadata_to_mp4(filepath, track)
 
 
 def parse_playlist_items(api_response: dict) -> list[dict]:
