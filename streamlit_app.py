@@ -29,7 +29,7 @@ def download_track(track: dict) -> None:
     #                .output(f"./download/{track['artist']} - {track['title']}.mp4", f="mp4", **metadata)\
     try:
         process = ffmpeg.input("pipe:", f="mp4")\
-                        .output(f"./output/{track['artist']} - {track['title']}.mp4", f="mp4", **metadata) \
+                        .output(f"./download/{track['artist']} - {track['title']}.mp4", f="mp4", **metadata) \
                         .run_async(pipe_stdin=True, pipe_stdout=True, overwrite_output=True)
         process.communicate(input=audio_buffer.getvalue())
     except ffmpeg.Error as e:
@@ -109,8 +109,13 @@ def container_api_download(spotify_url: str) -> None:
         help="Select tracks to be downloaded"
     )
 
-    download_path = pathlib.Path("./ouput/")
-    download_path.mkdir()
+
+    download_path = pathlib.Path("./download/")
+    try:
+        download_path.mkdir()
+    except FileExistsError:
+        pass
+
     if st.button("Download Tracks"):
         download_progress = st.progress(0)
         logs_expander = st.expander("Logs")
