@@ -1,4 +1,5 @@
 from io import BytesIO
+from subprocess import Popen, PIPE
 
 import streamlit as st
 import streamlit.components.v1 as components
@@ -34,10 +35,12 @@ def new_dl_youtube(track: dict) -> None:
         "metadata:g:1": f'artist={track["artist"]}',
         "metadata:g:2": f'album={track["album"]}',
     }
+
     try:
-        ffmpeg.input(audio_buffer.getvalue(), f="mp4") \
-              .output(f"{track['artist']}_{track['title']}.mp4", **metadata) \
-              .run(capture_stdout=True, capture_stderr=True, overwrite_output=True)
+        process = ffmpeg.input("pipe:", f="mp4")\
+                        .output(f"./download/{track['artist']} - {track['title']}.mp4", f="mp4", **metadata)\
+                        .run_async(pipe_stdin=True, pipe_stdout=True, overwrite_output=True)
+        process.communicate(input=audio_buffer.getvalue())
 
     except ffmpeg.Error as e:
         print('stdout:', e.stdout.decode('utf8'))
