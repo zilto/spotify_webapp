@@ -1,7 +1,6 @@
 from io import BytesIO
 import os
 import pathlib
-import zipfile
 import shutil
 
 import streamlit as st
@@ -12,7 +11,7 @@ import pytube
 import ffmpeg
 
 
-BASE_DIR = pathlib.Path("./download")
+BASE_DIR = pathlib.Path(".", "download")
 
 
 def get_track_from_youtube(artist: str, title: str) -> BytesIO:
@@ -87,18 +86,11 @@ def parse_track(api_response: dict) -> list:
 def get_filetree(root: str) -> dict:
     filetree = {}
     for fullpath, subdirectories, files in os.walk(root):
-        # TODO fix windows / linux path string partitioning
-        _0, _2, current_sub = fullpath.partition("/")
-        # print("\n\n")
-        # print("0", _0)
-        # print("2", _2)
-        # print("3", current_sub)
-        # print("subdir", subdirectories)
-        # print("files", files)
+        endpoint = pathlib.Path(fullpath).name
         for s in subdirectories:
             filetree[s] = []
         for f in files:
-            filetree[current_sub].append(f)
+            filetree[endpoint].append(f)
     return filetree
 
 
@@ -158,12 +150,15 @@ def container_api_download(spotify_url: str) -> None:
                 pass
             finally:
                 download_progress.progress((idx + 1) / len(track_selection))
-                # with st.empty():
-                #     st.json(get_filetree(BASE_DIR))
 
         shutil.make_archive("spotify_download", "zip", BASE_DIR)
-        with open("spotify_download.zip", "rb") as file:
-            st.download_button("Download zip", file, file_name="spotify_download.zip")
+
+    with st.empty():
+        st.json(get_filetree(BASE_DIR))
+
+    shutil.make_archive("spotify_download", "zip", BASE_DIR)
+    with open("spotify_download.zip", "rb") as file:
+        st.download_button("Download zip", file, file_name="spotify_download.zip")
 
 
 def app() -> None:
