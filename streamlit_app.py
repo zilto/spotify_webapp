@@ -143,18 +143,13 @@ def container_api_download(spotify_url: str) -> None:
     # logic kept here to allow for progress bar without complicated callbacks
     if st.button("Get Tracks"):
         download_progress = st.progress(0)
-        # logs_expander = st.expander("Logs")
-
         for idx, track in enumerate(track_selection):
             try:
                 download_track(track=track, subdirectory=subdirectory)
-                # logs_expander.write(f"{idx + 1} - Success - {track['artist']} - {track['title']}")
             except FileExistsError:
                 pass
-                # logs_expander.write(f"{idx + 1} - Failure - {track['artist']} - {track['title']}")
             finally:
                 download_progress.progress((idx + 1) / len(track_selection))
-                display_file_tree(BASE_DIR)
 
         with zipfile.ZipFile("spotify_download.zip", "w") as myzip:
             for child in BASE_DIR.iterdir():
@@ -188,6 +183,7 @@ def app() -> None:
 
     with col2:
         container_api_download(spotify_url)
+        display_file_tree(BASE_DIR)
 
 
 if __name__ == "__main__":
