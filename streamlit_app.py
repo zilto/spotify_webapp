@@ -2,6 +2,7 @@ from io import BytesIO
 import os
 import pathlib
 import zipfile
+import shutil
 
 import streamlit as st
 import streamlit.components.v1 as components
@@ -11,7 +12,7 @@ import pytube
 import ffmpeg
 
 
-BASE_DIR = pathlib.Path(".\\download\\")
+BASE_DIR = pathlib.Path("./download")
 
 
 def get_track_from_youtube(artist: str, title: str) -> BytesIO:
@@ -83,15 +84,22 @@ def parse_track(api_response: dict) -> list:
     return [dict(title=title, artist=artist, album=album)]  # wrap the single item in a list
 
 
-def display_file_tree(root: str):
-    file_tree = {}
-    for path, subdirectories, files in os.walk(root):
-        _, _, current_sub = path.partition("\\")
+def get_filetree(root: str) -> dict:
+    filetree = {}
+    for fullpath, subdirectories, files in os.walk(root):
+        # TODO fix windows / linux path string partitioning
+        _0, _2, current_sub = fullpath.partition("/")
+        # print("\n\n")
+        # print("0", _0)
+        # print("2", _2)
+        # print("3", current_sub)
+        # print("subdir", subdirectories)
+        # print("files", files)
         for s in subdirectories:
-            file_tree[s] = []
+            filetree[s] = []
         for f in files:
-            file_tree[current_sub].append(f)
-    st.json(file_tree)
+            filetree[current_sub].append(f)
+    return filetree
 
 
 @st.experimental_singleton
@@ -116,7 +124,7 @@ def container_api_download(spotify_url: str) -> None:
     if url_parts[3] == "playlist":
         response = spotify_client.playlist(spotify_url, fields="(name, tracks(items(track(artists(name), name, album(name)))))")
         tracks = parse_playlist(response)
-        subdirectory = response["name"]
+        subdirectory = response.pop("name")
     elif url_parts[3] == "album":
         response = spotify_client.album(spotify_url)
         tracks = parse_album(response)
@@ -150,14 +158,12 @@ def container_api_download(spotify_url: str) -> None:
                 pass
             finally:
                 download_progress.progress((idx + 1) / len(track_selection))
+                # with st.empty():
+                #     st.json(get_filetree(BASE_DIR))
 
-        with zipfile.ZipFile("spotify_download.zip", "w") as myzip:
-            for child in BASE_DIR.iterdir():
-                if child.is_file():
-                    myzip.write(child)
-
+        shutil.make_archive("spotify_download", "zip", BASE_DIR)
         with open("spotify_download.zip", "rb") as file:
-            st.download_button("Download zip", file, "output.zip", mime="application/octet-stream")
+            st.download_button("Download zip", file, file_name="spotify_download.zip")
 
 
 def app() -> None:
@@ -183,7 +189,6 @@ def app() -> None:
 
     with col2:
         container_api_download(spotify_url)
-        display_file_tree(BASE_DIR)
 
 
 if __name__ == "__main__":
