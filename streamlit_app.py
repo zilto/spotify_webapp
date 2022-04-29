@@ -11,7 +11,7 @@ import pytube
 import ffmpeg
 
 
-BASE_DIR = pathlib.Path(".", "download")
+BASE_DIR = pathlib.Path("download")
 
 
 def get_track_from_youtube(artist: str, title: str) -> BytesIO:
@@ -140,9 +140,6 @@ def container_api_download(spotify_url: str) -> None:
         help="Select tracks to be downloaded"
     )
 
-    # create main download directory
-    BASE_DIR.mkdir(exist_ok=True)
-
     # logic kept here to allow for progress bar without complicated callbacks
     if st.button("Get Tracks"):
         download_progress = st.progress(0)
@@ -172,6 +169,8 @@ def app() -> None:
         layout="centered",
         menu_items={"Get help": None, "Report a Bug": None}
     )
+    # create main download directory
+    BASE_DIR.mkdir(exist_ok=True)
 
     st.title("Spotify Downloader")
 
