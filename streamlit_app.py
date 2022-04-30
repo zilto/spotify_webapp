@@ -84,40 +84,25 @@ def parse_track(api_response: dict) -> list:
 
 
 def get_filetree(root: str) -> dict:
-    # filetree = {}
-    # for fullpath, subdirectories, files in os.walk(root):
-    #     print("fullpath", fullpath)
-    #     print("subdirectories", subdirectories)
-    #     print("files", files)
-    #     endpoint = pathlib.Path(fullpath).name
-    #     for s in subdirectories:
-    #         filetree[s] = []
-    #     for f in files:
-    #         filetree[endpoint].append(f)
-    filetree = []
-    for rooted, dirs, files in os.walk(root):
-        for file in files:
-            filename = os.path.join(rooted, file)
-            filetree.append(filename)
+    filetree = {}
+    for fullpath, subdirectories, files in os.walk(root):
+        print("fullpath", fullpath)
+        print("subdirectories", subdirectories)
+        print("files", files)
+        endpoint = pathlib.Path(fullpath).name
+        for s in subdirectories:
+            filetree[s] = []
+        for f in files:
+            filetree[endpoint].append(f)
+    # filetree = []
+    # for rooted, dirs, files in os.walk(root):
+    #     for file in files:
+    #         filename = os.path.join(rooted, file)
+    #         filetree.append(filename)
     return filetree
 
 
-@st.experimental_singleton
-def get_authenticator():
-    auth_manager = SpotifyClientCredentials(
-        client_id=st.secrets["spotify_api"]["client_id"],
-        client_secret=st.secrets["spotify_api"]["client_secret"],
-    )
-    return auth_manager
-
-
-def container_spotify_iframe(spotify_url: str) -> None:
-    url_parts = spotify_url.split("/")
-    embed_url = f"https://{url_parts[2]}/embed/{url_parts[3]}/{url_parts[4]}?utm_source=generator"
-    components.iframe(src=embed_url, height=400)
-
-
-def container_api_download(spotify_url: str) -> None:
+def query_spotify_api(spotify_url: str) -> tuple:
     spotify_client = spotipy.client.Spotify(auth_manager=get_authenticator())
     url_parts = spotify_url.split("/")
 
@@ -137,6 +122,27 @@ def container_api_download(spotify_url: str) -> None:
         tracks = []
         subdirectory = None
 
+    return tracks, subdirectory
+
+
+@st.experimental_singleton
+def get_authenticator():
+    auth_manager = SpotifyClientCredentials(
+        client_id=st.secrets["spotify_api"]["client_id"],
+        client_secret=st.secrets["spotify_api"]["client_secret"],
+    )
+    return auth_manager
+
+
+def container_spotify_iframe(spotify_url: str) -> None:
+    url_parts = spotify_url.split("/")
+    embed_url = f"https://{url_parts[2]}/embed/{url_parts[3]}/{url_parts[4]}?utm_source=generator"
+    components.iframe(src=embed_url, height=200)
+
+
+def container_query_api(spotify_url: str) -> None:
+    tracks, subdirectory = query_spotify_api(spotify_url=spotify_url)
+
     track_selection = st.multiselect(
         label="Track Selection",
         options=tracks,
@@ -145,26 +151,34 @@ def container_api_download(spotify_url: str) -> None:
         help="Select tracks to be downloaded"
     )
 
-    # logic kept here to allow for progress bar without complicated callbacks
     if st.button("Get Tracks"):
         download_progress = st.progress(0)
         for idx, track in enumerate(track_selection):
             try:
                 download_track(track=track, subdirectory=subdirectory)
             except FileExistsError:
-                pass
+                st.error(f"Error getting `{track}`")
             finally:
                 download_progress.progress((idx + 1) / len(track_selection))
+        st.success("Done getting tracks")
 
-        shutil.make_archive("spotify_download", "zip", BASE_DIR)
 
+def container_download_tracks() -> None:
+    st.subheader("Stored tracks")
     with st.empty():
         st.json(get_filetree(BASE_DIR))
 
-    # TODO cleaner button setup
     shutil.make_archive("spotify_download", "zip", BASE_DIR)
     with open("spotify_download.zip", "rb") as file:
-        st.download_button("Download zip", file, file_name="spotify_download.zip")
+        st.download_button(
+            label="Download Stored Tracks",
+            data=file,
+            file_name="spotify_download.zip",
+        )
+
+    if st.button("Clear Stored Tracks"):
+        shutil.rmtree(BASE_DIR)
+        BASE_DIR.mkdir(exist_ok=True)
 
 
 def app() -> None:
@@ -178,20 +192,21 @@ def app() -> None:
     # create main download directory
     BASE_DIR.mkdir(exist_ok=True)
 
-    st.title("Spotify Downloader")
-
+    st.title("Spotify Downloader :inbox_tray:")
     spotify_url = st.text_input(
         "Spotify URL",
-        value="https://open.spotify.com/album/4tBF36exZUWUcDwluyHKcV",
+        value="https://open.spotify.com/album/3fBcR6oHIn8ZvTVYJAa2yS",
         help="Paste Spotify URL to playlist, album, or track"
     )
 
     col1, col2 = st.columns(2)
+
     with col1:
         container_spotify_iframe(spotify_url)
+        container_query_api(spotify_url)
 
     with col2:
-        container_api_download(spotify_url)
+        container_download_tracks()
 
 
 if __name__ == "__main__":
