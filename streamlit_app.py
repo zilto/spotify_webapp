@@ -84,21 +84,21 @@ def parse_track(api_response: dict) -> list:
 
 
 def get_filetree(root: str) -> dict:
-    filetree = {}
-    for fullpath, subdirectories, files in os.walk(root):
-        print("fullpath", fullpath)
-        print("subdirectories", subdirectories)
-        print("files", files)
-        endpoint = pathlib.Path(fullpath).name
-        for s in subdirectories:
-            filetree[s] = []
-        for f in files:
-            filetree[endpoint].append(f)
-    # filetree = []
-    # for rooted, dirs, files in os.walk(root):
-    #     for file in files:
-    #         filename = os.path.join(rooted, file)
-    #         filetree.append(filename)
+    # filetree = {}
+    # for fullpath, subdirectories, files in os.walk(root):
+    #     print("fullpath", fullpath)
+    #     print("subdirectories", subdirectories)
+    #     print("files", files)
+    #     endpoint = pathlib.Path(fullpath).name
+    #     for s in subdirectories:
+    #         filetree[s] = []
+    #     for f in files:
+    #         filetree[endpoint].append(f)
+    filetree = []
+    for rooted, dirs, files in os.walk(root):
+        for file in files:
+            filename = os.path.join(rooted, file)
+            filetree.append(filename)
     return filetree
 
 
