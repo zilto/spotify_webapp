@@ -11,7 +11,7 @@ import pytube
 import ffmpeg
 
 
-BASE_DIR = pathlib.Path("download")
+BASE_DIR = pathlib.Path.cwd().joinpath("download")
 
 
 def get_track_from_youtube(artist: str, title: str) -> BytesIO:
@@ -84,21 +84,21 @@ def parse_track(api_response: dict) -> list:
 
 
 def get_filetree(root: str) -> dict:
-    # filetree = {}
-    # for fullpath, subdirectories, files in os.walk(root):
-    #     print("fullpath", fullpath)
-    #     print("subdirectories", subdirectories)
-    #     print("files", files)
-    #     endpoint = pathlib.Path(fullpath).name
-    #     for s in subdirectories:
-    #         filetree[s] = []
-    #     for f in files:
-    #         filetree[endpoint].append(f)
-    filetree = []
-    for rooted, dirs, files in os.walk(root):
-        for file in files:
-            filename = os.path.join(rooted, file)
-            filetree.append(filename)
+    filetree = {}
+    for fullpath, subdirectories, files in os.walk(root):
+        print("fullpath", fullpath)
+        print("subdirectories", subdirectories)
+        print("files", files)
+        endpoint = pathlib.Path(fullpath).name
+        for s in subdirectories:
+            filetree[s] = []
+        for f in files:
+            filetree[endpoint].append(f)
+    # filetree = []
+    # for rooted, dirs, files in os.walk(root):
+    #     for file in files:
+    #         filename = os.path.join(rooted, file)
+    #         filetree.append(filename)
     return filetree
 
 
@@ -161,6 +161,7 @@ def container_api_download(spotify_url: str) -> None:
     with st.empty():
         st.json(get_filetree(BASE_DIR))
 
+    # TODO cleaner button setup
     shutil.make_archive("spotify_download", "zip", BASE_DIR)
     with open("spotify_download.zip", "rb") as file:
         st.download_button("Download zip", file, file_name="spotify_download.zip")
