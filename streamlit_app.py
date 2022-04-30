@@ -12,6 +12,7 @@ import ffmpeg
 
 
 BASE_DIR = pathlib.Path.cwd().joinpath("download")
+os.chdir(BASE_DIR)
 
 
 def get_track_from_youtube(artist: str, title: str) -> BytesIO:
