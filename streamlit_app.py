@@ -8,6 +8,7 @@ import streamlit.components.v1 as components
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
 import pytube
+from pytube.exceptions import VideoUnavailable
 import ffmpeg
 
 
@@ -86,19 +87,11 @@ def parse_track(api_response: dict) -> list:
 def get_filetree(root: str) -> dict:
     filetree = {}
     for fullpath, subdirectories, files in os.walk(root):
-        print("fullpath", fullpath)
-        print("subdirectories", subdirectories)
-        print("files", files)
         endpoint = pathlib.Path(fullpath).name
         for s in subdirectories:
             filetree[s] = []
         for f in files:
             filetree[endpoint].append(f)
-    # filetree = []
-    # for rooted, dirs, files in os.walk(root):
-    #     for file in files:
-    #         filename = os.path.join(rooted, file)
-    #         filetree.append(filename)
     return filetree
 
 
@@ -157,7 +150,9 @@ def container_query_api(spotify_url: str) -> None:
             try:
                 download_track(track=track, subdirectory=subdirectory)
             except FileExistsError:
-                st.error(f"Error getting `{track}`")
+                st.error(f"Error getting: `{track}`")
+            except VideoUnavailable:
+                st.error(f"Video Unavailable: `{track}`")
             finally:
                 download_progress.progress((idx + 1) / len(track_selection))
         st.success("Done getting tracks")
@@ -165,10 +160,10 @@ def container_query_api(spotify_url: str) -> None:
 
 def container_download_tracks() -> None:
     st.subheader("Stored tracks")
-    with st.empty():
+    with st.empty():  # st.empty() allow to update the same container
         st.json(get_filetree(BASE_DIR))
 
-    shutil.make_archive("spotify_download", "zip", BASE_DIR)
+    shutil.make_archive("spotify_download", "zip", BASE_DIR)  # need to create empty .zip to avoid error with the button
     with open("spotify_download.zip", "rb") as file:
         st.download_button(
             label="Download Stored Tracks",
@@ -177,8 +172,8 @@ def container_download_tracks() -> None:
         )
 
     if st.button("Clear Stored Tracks"):
-        shutil.rmtree(BASE_DIR)
-        BASE_DIR.mkdir(exist_ok=True)
+        shutil.rmtree(BASE_DIR)  # delete the BASE_DIR and all subdirectory
+        BASE_DIR.mkdir(exist_ok=True)  # make a new BASE_DIR
 
 
 def app() -> None:
