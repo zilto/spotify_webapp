@@ -150,9 +150,9 @@ def container_query_api(spotify_url: str) -> None:
             try:
                 download_track(track=track, subdirectory=subdirectory)
             except FileExistsError:
-                st.error(f"Error getting: `{track}`")
+                st.error(f"Error getting: {track['artist']} {track['title']}")
             except VideoUnavailable:
-                st.error(f"Video Unavailable: `{track}`")
+                st.error(f"Video Unavailable: {track['artist']} {track['title']}")
             finally:
                 download_progress.progress((idx + 1) / len(track_selection))
         st.success("Done getting tracks")
