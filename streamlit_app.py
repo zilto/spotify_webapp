@@ -190,7 +190,7 @@ def app() -> None:
     st.title("Spotify Downloader :inbox_tray:")
     spotify_url = st.text_input(
         "Spotify URL",
-        value="https://open.spotify.com/album/3fBcR6oHIn8ZvTVYJAa2yS",
+        value="https://open.spotify.com/album/1WoYIuMY3GbV4JyTzcdKGU",
         help="Paste Spotify URL to playlist, album, or track"
     )
 
