@@ -1,5 +1,5 @@
 # Spotify downloader
-![Screenshot](https://raw.githubusercontent.com/zilto/spotify_webapp/main/README.md)
+![Screenshot](https://raw.githubusercontent.com/zilto/spotify_webapp/main/docs/screenshot.PNG)
 
 ## Motivation
 The Spotify recommendation system often impresses me. It is a great service, but I also like to have music stored locally on my device. It allows me to listen to it while keeping my device offline to shield myself from distractions
