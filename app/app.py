@@ -12,7 +12,7 @@ from pytube.exceptions import VideoUnavailable
 import ffmpeg
 
 
-BASE_DIR = pathlib.Path.cwd().joinpath("download")
+BASE_DIR = pathlib.Path.cwd().joinpath("../download")
 
 
 def get_track_from_youtube(artist: str, title: str) -> BytesIO:
@@ -144,7 +144,7 @@ def container_query_api(spotify_url: str) -> None:
         help="Select tracks to be downloaded"
     )
 
-    if st.button("Get Tracks"):
+    if st.button("Get Tracks", help="Tracks are cached in your browser and will appear under `Stored tracks`."):
         download_progress = st.progress(0)
         for idx, track in enumerate(track_selection):
             try:
@@ -164,14 +164,15 @@ def container_download_tracks() -> None:
         st.json(get_filetree(BASE_DIR))
 
     shutil.make_archive("spotify_download", "zip", BASE_DIR)  # need to create empty .zip to avoid error with the button
-    with open("spotify_download.zip", "rb") as file:
+    with open("./spotify_download.zip", "rb") as file:
         st.download_button(
             label="Download Stored Tracks",
             data=file,
-            file_name="spotify_download.zip",
+            file_name="./spotify_download.zip",
+            help="Download the files appearing under `Stored tracks`"
         )
 
-    if st.button("Clear Stored Tracks"):
+    if st.button("Clear Stored Tracks", help="Clear your local cache of `Stored tracks`"):
         shutil.rmtree(BASE_DIR)  # delete the BASE_DIR and all subdirectory
         BASE_DIR.mkdir(exist_ok=True)  # make a new BASE_DIR
 

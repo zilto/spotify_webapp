@@ -1,7 +1,7 @@
 .idea/
 convert/
 download/
-.streamlit/secrets.toml
-.streamlit/
-.cache
+app/.streamlit/secrets.toml
+app/.streamlit/
+app/.cache
 *.zip
