@@ -6,7 +6,7 @@ The Spotify recommendation system often impresses me. It is a great service, but
 
 ## Solution
 I built a small webapp that allows me to download my favorite Spotify content
-**Try it here**: https://zilto-spotify-webapp-streamlit-app-yh7tjd.streamlitapp.com/
+**Try it here**: https://d2i8revbh2anq4.cloudfront.net/
 
 ### How to use it
 0. Create a public playlist on Spotify
